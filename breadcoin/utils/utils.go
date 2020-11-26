@@ -9,14 +9,14 @@ import (
 	"encoding/json"
 )
 
-func hash(s string) []byte {
+func Hash(s string) []byte {
 	h := sha256.New()
 	h.Write([]byte(s))
 	val := h.Sum(nil)
 	return val
 }
 
-func generatekeypair() *rsa.PrivateKey {
+func GenerateKeypair() *rsa.PrivateKey {
 	key, err := rsa.GenerateKey(rand.Reader, 512)
 	if err != nil {
 		panic(err)
@@ -24,8 +24,8 @@ func generatekeypair() *rsa.PrivateKey {
 	return key
 }
 
-func sign(privKey *rsa.PrivateKey, msg string) []byte {
-	h := hash(msg)
+func Sign(privKey *rsa.PrivateKey, msg string) []byte {
+	h := Hash(msg)
 	sig, err := rsa.SignPKCS1v15(rand.Reader, privKey, crypto.SHA256, h[:])
 	if err != nil {
 		panic(err)
@@ -33,8 +33,8 @@ func sign(privKey *rsa.PrivateKey, msg string) []byte {
 	return sig
 }
 
-func verifySignature(privKey *rsa.PrivateKey, msg string, sig []byte) bool {
-	h := hash(msg)
+func VerifySignature(privKey *rsa.PrivateKey, msg string, sig []byte) bool {
+	h := Hash(msg)
 	err := rsa.VerifyPKCS1v15(&privKey.PublicKey, crypto.SHA256, h[:], sig)
 	if err != nil {
 		return false
@@ -42,16 +42,16 @@ func verifySignature(privKey *rsa.PrivateKey, msg string, sig []byte) bool {
 	return true
 }
 
-func calculateAddress(privKey *rsa.PrivateKey) string {
+func CalculateAddress(privKey *rsa.PrivateKey) string {
 	stringKey, err := json.Marshal(&privKey.PublicKey)
 	if err != nil {
 		panic(err)
 	}
-	h := hash(string(stringKey))
+	h := Hash(string(stringKey))
 	stringOfHash := b64.StdEncoding.EncodeToString(h)
 	return stringOfHash
 }
 
-func addressMatchesKey(addr string, privKey *rsa.PrivateKey) bool {
-	return addr == calculateAddress(privKey)
+func AddressMatchesKey(addr string, privKey *rsa.PrivateKey) bool {
+	return addr == CalculateAddress(privKey)
 }
