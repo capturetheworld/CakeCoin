@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/user/168proj/breadcoin/utils"
+	"./utils"
 )
 
 type Transaction struct {
