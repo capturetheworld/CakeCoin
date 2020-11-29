@@ -33,17 +33,17 @@ func Sign(privKey *rsa.PrivateKey, msg string) []byte {
 	return sig
 }
 
-func VerifySignature(privKey *rsa.PrivateKey, msg string, sig []byte) bool {
+func VerifySignature(pubKey *rsa.PublicKey, msg string, sig []byte) bool {
 	h := Hash(msg)
-	err := rsa.VerifyPKCS1v15(&privKey.PublicKey, crypto.SHA256, h[:], sig)
+	err := rsa.VerifyPKCS1v15(pubKey, crypto.SHA256, h[:], sig)
 	if err != nil {
 		return false
 	}
 	return true
 }
 
-func CalculateAddress(privKey *rsa.PrivateKey) string {
-	stringKey, err := json.Marshal(&privKey.PublicKey)
+func CalculateAddress(pubKey *rsa.PublicKey) string {
+	stringKey, err := json.Marshal(pubKey)
 	if err != nil {
 		panic(err)
 	}
@@ -52,6 +52,6 @@ func CalculateAddress(privKey *rsa.PrivateKey) string {
 	return stringOfHash
 }
 
-func AddressMatchesKey(addr string, privKey *rsa.PrivateKey) bool {
-	return addr == CalculateAddress(privKey)
+func AddressMatchesKey(addr string, pubKey *rsa.PublicKey) bool {
+	return addr == CalculateAddress(pubKey)
 }

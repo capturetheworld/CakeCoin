@@ -9,11 +9,6 @@ import (
 	"./utils"
 )
 
-type Transaction struct {
-	temp string
-	id   string
-}
-
 type Block struct {
 	PrevBlockHash  []byte
 	Target         *big.Int
@@ -70,7 +65,7 @@ func addTransaction(tx Transaction, client int) bool {
 	return true
 }
 
-func New(rewardAddr string, prevBlock *Block, target *big.Int, coinbaseReward int) *Block {
+func NewBlock(rewardAddr string, prevBlock *Block, target *big.Int, coinbaseReward int) *Block {
 	var prevBlockHash []byte = nil
 	balances := make(map[string]float64)
 	nextNonce := make(map[string]int)
