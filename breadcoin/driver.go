@@ -3,13 +3,6 @@ package main
 
 import (
 	"fmt"
-	// Blockchain "./blockchain"
-	// Block "./block.go"
-	// Client "./client"
-	// Miner "./miner"
-	// Transaction "./transaction"
-	// FakeNet "./fakeNet"
-	"encoding/json"
 	"time"
 )
 
@@ -24,7 +17,7 @@ var charlie = Client{name: "Charlie", net: fakeNet}
 var minnie = Miner{name: "Minnie", net: fakeNet}
 var mickey = Miner{name: "Mickey", net: fakeNet}
 
-var genesis = //to implement
+// var genesis  //to implement
 
 var donald =  Miner{name: "Donald", net: fakeNet, startingBlock: genesis, miningRounds: 3000};
 
@@ -42,9 +35,9 @@ func main() {
 	fmt.Printf("Alice is transferring 40 gold to %v", bob.address)
 	alice.postTransaction(40, bob.address);
 
-	time.AfterFunc(2*time.Second, timeout1()) //not sure
+	time.AfterFunc(2*time.Second, timeout1()) 
 
-	time.AfterFunc(5*time.Second, timeout2()) //not sure
+	time.AfterFunc(5*time.Second, timeout2()) 
 
 }
 
