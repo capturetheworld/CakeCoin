@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"time"
 
-	"./utils"
+	"github.com/Stan/168proj/breadcoin/utils"
 )
 
 type Block struct {
