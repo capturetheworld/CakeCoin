@@ -114,6 +114,6 @@ func NewClient(name string, Net FakeNet, startingBlock *Block, keyPair *rsa.Priv
 		c.setGenesisBlock(startingBlock)
 	}
 
-	return &client
+	return &c
 
 }
