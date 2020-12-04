@@ -19,10 +19,11 @@ type Block struct {
 	Timestamp      time.Time
 	RewardAddr     string
 	CoinbaseReward int
+	Proof          int
 }
 
 func (b Block) hashVal() []byte {
-	return utils.Hash(b.serialize())
+	return utils.Hash(b.Serialize())
 }
 
 func (b Block) totalRewards() float64 {
@@ -37,7 +38,7 @@ func (b Block) balanceOf(addr string) float64 {
 	return b.Balances[addr]
 }
 
-func (b Block) isGenesisBlock() bool {
+func (b Block) IsGenesisBlock() bool {
 	return b.ChainLength == 0
 }
 
@@ -52,7 +53,7 @@ func (b Block) hasValidProof() bool {
 	return n.Cmp(b.Target) < 0
 }
 
-func (b Block) serialize() string {
+func (b Block) Serialize() string {
 	jsonByte, err := json.Marshal(b)
 	if err != nil {
 		panic(err)
