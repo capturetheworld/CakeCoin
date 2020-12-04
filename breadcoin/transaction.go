@@ -51,7 +51,7 @@ func (t Transaction) TotalOutput() float64 {
 	return total
 }
 
-//NEED DATA PLZZZZZ ADDDDDD YOOOOOO
+//NEED DATA PLZZZZ ADDDDDD YOOOOOO
 func NewTransaction(from string, nonce int, pubKey *rsa.PublicKey, sig []byte, fee float64, outputs []Output) *Transaction {
 
 	//didn't do nil checking

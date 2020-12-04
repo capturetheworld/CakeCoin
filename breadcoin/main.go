@@ -1,8 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"math/big"
 
 	"github.com/Stan/168proj/breadcoin/utils"
 )
@@ -17,6 +17,7 @@ func main() {
 	fmt.Println(addr1)
 	fmt.Println(utils.AddressMatchesKey(addr1, &privKey.PublicKey))
 
+	/**
 	signature := utils.Sign(privKey, text)
 	fmt.Println(signature)
 	fmt.Println(utils.VerifySignature(&privKey.PublicKey, text, signature))
@@ -33,4 +34,8 @@ func main() {
 	trans.Sign(privKey)
 	fmt.Println(trans.ValidSignature())
 	fmt.Println(trans.Id())
+	**/
+	b := NewBlock(addr1, nil, big.NewInt(5), 25)
+	fmt.Println(b.Serialize())
+	deserializeBlock([]byte(b.Serialize()))
 }
