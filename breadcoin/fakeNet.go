@@ -2,6 +2,7 @@ package main
 
 import {
 	"encoding/json"
+	 "time"
 }
 
 
@@ -37,7 +38,12 @@ func (f FakeNet) sendMessage(addr string,msg string, o interface{}) {
 	jsonByte, err := json.Marshal(o)
 	f.o2 = json.Unmarshal(string(jsonByte))
 	//needs setTimeout(() => client.emit(msg, o2), 0);
+	const CLIENT = f.clients[addr];
+	time.AfterFunc(0, CLIENT.emit(msg,f.o2))
+
 }
+
+
 
 
 func NewFakeNet(){
