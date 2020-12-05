@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"./utils"
+	//"./emitter"
 )
 
 type Message struct {
@@ -56,8 +57,9 @@ func (c Client) receiveBlock(b Block) *Block { //needs finishing, figure out how
 	b = Blockchain.deserializeBlock(b)
 
 	if val, ok := c.Blocks[b.ID]; ok {
-		return null
+		return nil
 	}
+	return nil
 
 }
 
