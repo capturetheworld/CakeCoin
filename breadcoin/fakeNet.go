@@ -3,12 +3,12 @@ package main
 import (
 	"encoding/json"
 	 "time"
-)
+	
 
 
 
 type FakeNet struct {
-	Clients map[[]byte]Client
+	Clients map[string]Client
 }
 
 
@@ -28,8 +28,7 @@ func (f FakeNet) broadcast(msg string,o interface{}) {
 func (f FakeNet) recognizes(client Client) bool  {
 	if val, ok := clientList[client.Address]; ok {
 		return true
-	}
-	else{
+	}else{
 		return false
 	}
 }
@@ -55,5 +54,3 @@ func NewFakeNet(){
 
 
 
-
-(
