@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"time"
 
-	"./utils"
+	//"./utils"
 )
 
 type Block struct {
