@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/Stan/168proj/breadcoin/utils"
+	"./utils"
 )
 
 func main() {
