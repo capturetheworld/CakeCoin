@@ -12,9 +12,9 @@ import (
 type Block struct {
 	PrevBlockHash  []byte
 	Target         *big.Int
-	Balances       map[string]float64
+	Balances       map[string]int
 	NextNonce      map[string]int
-	Transactions   map[string]Transaction
+	Transactions   map[string]*Transaction
 	ChainLength    int
 	Timestamp      time.Time
 	RewardAddr     string
@@ -26,15 +26,15 @@ func (b Block) hashVal() []byte {
 	return utils.Hash(b.Serialize())
 }
 
-func (b Block) totalRewards() float64 {
-	total := float64(b.CoinbaseReward)
+func (b Block) totalRewards() int {
+	total := int(b.CoinbaseReward)
 	for _, output := range b.Transactions {
 		total += output.Fee
 	}
 	return total
 }
 
-func (b Block) balanceOf(addr string) float64 {
+func (b Block) balanceOf(addr string) int {
 	return b.Balances[addr]
 }
 
@@ -78,7 +78,7 @@ func (b Block) contains(tx Transaction) bool {
 }
 
 //ONCE CLIENT IS DONE CHANGE THIS!!!!!!!!!!!!!!!!!
-func (b *Block) addTransaction(tx Transaction, client int) bool {
+func (b *Block) addTransaction(tx *Transaction, client int) bool {
 	if _, found := b.Transactions[string(tx.Id())]; found {
 		fmt.Println(string(tx.Id()) + " is a duplicate")
 		return false
@@ -107,7 +107,10 @@ func (b *Block) addTransaction(tx Transaction, client int) bool {
 		b.NextNonce[tx.From] = nonce + 1
 	}
 
-	b.Transactions[string(tx.Id())] = tx
+	s := string(tx.Id())
+	fmt.Println(tx.Id())
+	b.Transactions[s] = tx
+	fmt.Println(b.Transactions)
 
 	senderBalance := b.balanceOf(tx.From)
 	b.Balances[tx.From] = senderBalance - tx.TotalOutput()
@@ -121,10 +124,10 @@ func (b *Block) addTransaction(tx Transaction, client int) bool {
 }
 
 func (b *Block) rerun(prevBlock *Block) bool {
-	b.Balances = make(map[string]float64)
+	b.Balances = make(map[string]int)
 	b.NextNonce = make(map[string]int)
 	txs := b.Transactions
-	b.Transactions = make(map[string]Transaction)
+	b.Transactions = make(map[string]*Transaction)
 	for index, element := range prevBlock.Balances {
 		b.Balances[index] = element
 	}
@@ -149,9 +152,9 @@ func (b *Block) rerun(prevBlock *Block) bool {
 
 func NewBlock(rewardAddr string, prevBlock *Block, target *big.Int, coinbaseReward int) *Block {
 	var prevBlockHash []byte = nil
-	balances := make(map[string]float64)
+	balances := make(map[string]int)
 	nextNonce := make(map[string]int)
-	transactions := make(map[string]Transaction)
+	transactions := make(map[string]*Transaction)
 	chainLength := 0
 	if prevBlock != nil {
 		prevBlockHash = prevBlock.hashVal()
