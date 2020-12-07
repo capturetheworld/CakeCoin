@@ -2,14 +2,14 @@ package main
 
 import (
 	"crypto/rsa"
+	b64 "encoding/base64"
 	"encoding/json"
-	"fmt"
 
 	"./utils"
 )
 
 type Output struct {
-	Amount float64
+	Amount int
 	Addr   string
 }
 
@@ -18,7 +18,7 @@ type Transaction struct {
 	Nonce   int
 	PubKey  *rsa.PublicKey
 	Sig     []byte `json:"-"`
-	Fee     float64
+	Fee     int
 	Outputs []Output
 	//data idk what to do for this for now
 }
@@ -28,7 +28,7 @@ func (t Transaction) Id() []byte {
 	if err != nil {
 		panic(err)
 	}
-	return utils.Hash("TX" + string(transStr))
+	return []byte(b64.StdEncoding.EncodeToString(utils.Hash("TX" + string(transStr))))
 }
 
 func (t *Transaction) Sign(privKey *rsa.PrivateKey) {
@@ -43,7 +43,7 @@ func (t Transaction) SufficientFunds(b Block) bool {
 	return t.TotalOutput() <= b.Balances[t.From]
 }
 
-func (t Transaction) TotalOutput() float64 {
+func (t Transaction) TotalOutput() int {
 	total := t.Fee
 	for _, output := range t.Outputs {
 		total += output.Amount
@@ -52,10 +52,10 @@ func (t Transaction) TotalOutput() float64 {
 }
 
 //NEED DATA PLZZZZ ADDDDDD YOOOOOO
-func NewTransaction(from string, nonce int, pubKey *rsa.PublicKey, sig []byte, fee float64, outputs []Output) *Transaction {
+func NewTransaction(from string, nonce int, pubKey *rsa.PublicKey, sig []byte, fee int, outputs []Output) *Transaction {
 
 	//didn't do nil checking
-	fmt.Println("working")
+	//fmt.Println("working")
 	newTransaction := Transaction{from, nonce, pubKey, sig, fee, outputs}
 	return &newTransaction
 }
