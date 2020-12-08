@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/rsa"
 	"fmt"
+
 	"./utils"
 	//"./emitter"
 )
@@ -26,13 +27,13 @@ type Client struct {
 }
 
 func (c Client) setGenesisBlock(startingBlock *Block) {
-	if (c.LastBlock != nil) {
+	if c.LastBlock != nil {
 		fmt.Printf("Cannot set starting block for existing blockchain.")
 	}
 
 	c.LastConfirmedBlock = startingBlock
 	c.LastBlock = startingBlock
-	c.Blocks[startingBlock.id()] = startingBlock
+	c.Blocks[string(startingBlock.id())] = startingBlock
 }
 
 func (c Client) confirmedBalance() float64 {
@@ -40,7 +41,7 @@ func (c Client) confirmedBalance() float64 {
 }
 
 func (c Client) availableGold() float64 {
-	var  pendingSpent float64 = 0.0
+	var pendingSpent float64 = 0.0
 	for id, tx := range c.PendingOutgoingTransactions {
 		pendingSpent += tx.TotalOutput()
 	}
@@ -49,12 +50,12 @@ func (c Client) availableGold() float64 {
 
 }
 
-func (c Client) postTransaction() *Transaction {  //to implement, contains default parameter
+func (c Client) postTransaction() *Transaction { //to implement, contains default parameter
 	return nil
 }
 
-func (c Client) receiveBlock(b Block) *Block { //needs finishing, figure out how to return null
-	b = Blockchain.deserializeBlock(b)
+func (c Client) receiveBlock(b *Block) *Block { //needs finishing, figure out how to return null
+	b = deserializeBlock(b)
 
 	if val, ok := c.Blocks[b.ID]; ok {
 		return nil
@@ -66,7 +67,7 @@ func (c Client) receiveBlock(b Block) *Block { //needs finishing, figure out how
 func (c Client) requestMissingBlock(b Block) {
 	fmt.Printf("Asking for missing block: %v", b.PrevBlockHash)
 	var msg = Message{c.Address, b.PrevBlockHash}
-	c.Net.broadcast(Blockchain.MISSING_BLOCK(), msg)
+	c.Net.broadcast(MISSING_BLOCK, msg)
 }
 
 func (c Client) showAllBalances(b Block) {
@@ -80,12 +81,12 @@ func (c Client) showAllBalances(b Block) {
 }
 
 func (c Client) log(msg Message) {
-	if (len(c.Name) > 0) { 
-		name := c.Name 
-	 } else {
+	if len(c.Name) > 0 {
+		name := c.Name
+	} else {
 		name := c.Address[0:10]
-	 }
-	
+	}
+
 	fmt.Printf("    %v", c.Name)
 	fmt.Printf("    %v", msg)
 
@@ -96,7 +97,7 @@ func (c Client) showBlockchain() {
 	fmt.Println("BLOCKCHAIN:")
 	for block != nil {
 		fmt.Println(block.id())
-		block = c.Blocks[block].PrevBlockHash //unsure need to fix
+		block = c.Blocks[string(block.PrevBlockHash)]
 	}
 }
 
