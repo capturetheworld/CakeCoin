@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"math/big"
@@ -79,7 +78,7 @@ func (bc *BlockChain) MakeGenesis(powLeadingZeroes int, coinbaseAmount int, defa
 		}
 	}
 
-	g := MakeBlock("", nil, bc.PowTarget, bc.CoinbaseAmount)
+	g := bc.MakeBlock("", nil, bc.PowTarget, &bc.CoinbaseAmount)
 
 	for address, val := range balances {
 		g.Balances[address] = val
@@ -95,7 +94,7 @@ func (bc *BlockChain) MakeGenesis(powLeadingZeroes int, coinbaseAmount int, defa
 }
 
 //probably accepts a json object
-func deserializeBlock(o []byte) *Block {
+func (bc BlockChain) deserializeBlock(o []byte) *Block {
 	if !json.Valid(o) {
 		panic("Input is not a valid json object for block")
 	}
@@ -103,7 +102,7 @@ func deserializeBlock(o []byte) *Block {
 	var jsonBlock Block
 	var b Block
 	/**
-	dec := json.NewDecoder(strings.NewReader(string(o)))
+	dec := json.NewDecoder(strings.NewReader(string(	o)))
 	if err := dec.Decode(&jsonBlock); err == io.EOF {
 	} else if err != nil {
 		log.Fatal(err)
@@ -113,7 +112,7 @@ func deserializeBlock(o []byte) *Block {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(jsonBlock.Serialize())
+	//fmt.Println("new block is " + jsonBlock.Serialize())
 
 	balances := make(map[string]int)
 	chainLength := jsonBlock.ChainLength
@@ -137,7 +136,7 @@ func deserializeBlock(o []byte) *Block {
 			}
 		}
 		//GOTTA FIX THIS WHEN YOU IMPLEMENT CONSTANTS
-		b = *NewBlock(rewardAddr, nil, nil, 25)
+		b = *bc.MakeBlock(rewardAddr, nil, nil, nil)
 		b.ChainLength = chainLength
 		b.Timestamp = timestamp
 		b.PrevBlockHash = prevBlockHash
@@ -147,8 +146,16 @@ func deserializeBlock(o []byte) *Block {
 	return &b
 }
 
-func MakeBlock(s string, b *Block, i *big.Int, c int) *Block {
-	return NewBlock(s, b, i, c)
+func (bc BlockChain) MakeBlock(s string, b *Block, i *big.Int, c *int) *Block {
+	target := i
+	reward := c
+	if i == nil {
+		target = bc.PowTarget
+	}
+	if c == nil {
+		reward = &bc.CoinbaseAmount
+	}
+	return NewBlock(s, b, target, *reward)
 }
 
 func MakeTransaction(o []byte) *Transaction {
