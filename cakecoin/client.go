@@ -8,11 +8,13 @@ import (
 	//"./emitter"
 )
 
+//Message is
 type Message struct {
 	Address       string
 	PrevBlockHash []byte
 }
 
+//Client is
 type Client struct {
 	Name, Address                                            string
 	Nonce                                                    int
@@ -36,21 +38,21 @@ func (c Client) setGenesisBlock(startingBlock *Block) {
 	c.Blocks[string(startingBlock.id())] = startingBlock
 }
 
-func (c Client) confirmedBalance() float64 {
+func (c Client) confirmedBalance() int {
 	return c.LastConfirmedBlock.balanceOf(c.Address)
 }
 
-func (c Client) availableGold() float64 {
-	var pendingSpent float64 = 0.0
+func (c Client) availableGold() int {
+	var pendingSpent int = 0
 	for id, tx := range c.PendingOutgoingTransactions {
-		pendingSpent += tx.TotalOutput()
+		pendingSpent = pendingSpent + tx.TotalOutput()
 	}
 
-	return c.confirmedBalance() - pendingSpent
+	return int(c.confirmedBalance()) - pendingSpent
 
 }
 
-func (c Client) postTransaction() *Transaction { //to implement, contains default parameter
+func (c Client) postTransaction() *Transaction {
 	return nil
 }
 
