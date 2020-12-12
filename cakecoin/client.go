@@ -4,8 +4,9 @@ import (
 	"crypto/rsa"
 	"fmt"
 
-	"./utils"
+	//"./utils"
 	//"./emitter"
+	"github.com/Stan/168proj/cakecoin/utils"
 )
 
 //Message is
@@ -22,10 +23,11 @@ type Client struct {
 	KeyPair                                                  *rsa.PrivateKey
 	PendingOutgoingTransactions, PendingReceivedTransactions map[string]*Transaction
 	Blocks                                                   map[string]*Block
-	PendingBlocks                                            map[string]*Block
+	PendingBlocks                                            map[string][]*Block
 	LastBlock                                                *Block
 	LastConfirmedBlock                                       *Block
 	ReceiveBlock                                             *Block
+	BlockChain                                               *BlockChain
 }
 
 func (c Client) setGenesisBlock(startingBlock *Block) {
@@ -52,17 +54,86 @@ func (c Client) availableGold() int {
 
 }
 
-func (c Client) postTransaction() *Transaction {
-	return nil
+func (c *Client) postTransaction(outputs []Output, fee int) *Transaction {
+	total := fee
+	for _, output := range outputs {
+		total += output.Amount
+	}
+	if total > c.availableGold() {
+		panic(`Account doesn't have enough gold for transaction`)
+	}
+
+	tx := NewTransaction(c.Address, c.Nonce, &c.KeyPair.PublicKey, nil, fee, outputs)
+
+	tx.Sign(c.KeyPair)
+
+	c.PendingOutgoingTransactions[string(tx.Id())] = tx
+
+	c.Nonce++
+
+	//BROADCAST WITH EMITTER IDK HOW TO DO THIS
+
+	return tx
 }
 
-func (c Client) receiveBlock(b *Block) *Block { //needs finishing, figure out how to return null
-	b = deserializeBlock(b)
+func (c *Client) receiveBlock(b *Block, bstr string) *Block { //needs finishing, figure out how to return null
+	block := b
+	if b == nil {
+		block = c.BlockChain.deserializeBlock([]byte(bstr))
+	}
 
-	if val, ok := c.Blocks[b.ID]; ok {
+	if val, ok := c.Blocks[string(block.id())]; ok {
 		return nil
 	}
-	return nil
+
+	if !block.hasValidProof() && !block.IsGenesisBlock() {
+		fmt.Printf("Block %v does not have a valid proof", string(block.id()))
+		return nil
+	}
+
+	//make sure that the if statement after this actually sets it
+	var prevBlock *Block
+
+	if prevBlock, ok := c.Blocks[string(block.PrevBlockHash)]; !ok {
+		if !prevBlock.IsGenesisBlock() {
+			stuckBlocks, ok := c.PendingBlocks[string(block.PrevBlockHash)]
+			if !ok {
+				c.requestMissingBlock(*block)
+				//magic number here
+				stuckBlocks = make([]*Block, 10)
+			}
+			stuckBlocks = append(stuckBlocks, block)
+			c.PendingBlocks[string(block.PrevBlockHash)] = stuckBlocks
+			return nil
+		}
+	}
+
+	if !block.IsGenesisBlock() {
+		if !block.rerun(prevBlock) {
+			return nil
+		}
+	}
+
+	c.Blocks[string(block.id())] = block
+
+	if c.LastBlock.ChainLength < block.ChainLength {
+		c.LastBlock = block
+		c.setLastConfirmed()
+	}
+	//magic number
+	unstuckBlocks := make([]*Block, 0)
+	if val, ok := c.PendingBlocks[string(block.id())]; ok {
+		unstuckBlocks = val
+	}
+
+	delete(c.PendingBlocks, string(block.id()))
+
+	for _, uBlock := range unstuckBlocks {
+		fmt.Printf("processing unstuck block %v", string(block.id()))
+		c.receiveBlock(uBlock, "")
+	}
+
+	return block
 
 }
 
@@ -71,6 +142,12 @@ func (c Client) requestMissingBlock(b Block) {
 	var msg = Message{c.Address, b.PrevBlockHash}
 	c.Net.broadcast(MISSING_BLOCK, msg)
 }
+
+//func resendPendingTransactions
+
+//func provideMissingBlock
+
+//func setLastConfirmed
 
 func (c Client) showAllBalances(b Block) {
 	fmt.Printf("Showing balances:")
@@ -120,7 +197,7 @@ func NewClient(name string, Net FakeNet, startingBlock *Block, keyPair *rsa.Priv
 	c.PendingOutgoingTransactions = make(map[string]*Transaction)
 	c.PendingReceivedTransactions = make(map[string]*Transaction)
 	c.Blocks = make(map[string]*Block)
-	c.PendingBlocks = make(map[string]*Block)
+	c.PendingBlocks = make(map[string][]*Block)
 
 	if startingBlock != nil {
 		c.setGenesisBlock(startingBlock)

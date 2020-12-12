@@ -4,8 +4,9 @@ import (
 	"crypto/rsa"
 	"fmt"
 
-	"./utils"
+	//"./utils"
 	//"./emitter"
+	"github.com/Stan/168proj/cakecoin/utils"
 )
 
 //Miner is a client but since there is no subclasses
@@ -84,43 +85,40 @@ func (m Miner) startNewSearch() {
 	this.currentBlock.proof = 0
 }
 
-
 func (m Miner) announceProof() {
-    m.Net.broadcast(PROOF_FOUND, m.CurrentBlock);
-  }
-
-func (m Miner) receiveBlock(s *Block) {
-    m.Net.broadcast(PROOF_FOUND, m.CurrentBlock);
+	m.Net.broadcast(PROOF_FOUND, m.CurrentBlock)
 }
 
+func (m Miner) receiveBlock(s *Block) {
+	m.Net.broadcast(PROOF_FOUND, m.CurrentBlock)
+}
 
 //no optional parameters
 func (m Miner) findProof(oneAndDone bool) {
-	if(oneAndDone == nil){
+	if oneAndDone == nil {
 		oneAndDone = false
 	}
 
-	 pausePoint  := m.CurrentBlock.Proof + m.MiningRounds
+	pausePoint := m.CurrentBlock.Proof + m.MiningRounds
 
-    for (m.CurrentBlock.Proof < pausePoint) {
-      if (m.currentBlock.hasValidProof() == true) {
-		fmt.Printf("found proof for block %v",m.CurrentBlock.ChainLength)
-		fmt.Printf(": %v\n",m.CurrentBlock.Proof)
+	for m.CurrentBlock.Proof < pausePoint {
+		if m.currentBlock.hasValidProof() == true {
+			fmt.Printf("found proof for block %v", m.CurrentBlock.ChainLength)
+			fmt.Printf(": %v\n", m.CurrentBlock.Proof)
 
-        // this.log(`found proof for block ${this.currentBlock.chainLength}: ${this.currentBlock.proof}`);
-        m.announceProof();
-        m.receiveBlock(&m.CurrentBlock);
-        m.startNewSearch();
-        break;
-	  }
+			// this.log(`found proof for block ${this.currentBlock.chainLength}: ${this.currentBlock.proof}`);
+			m.announceProof()
+			m.receiveBlock(&m.CurrentBlock)
+			m.startNewSearch()
+			break
+		}
 	}
 
-	m.CurrentBlock.Proof++;
-	  
-    // If we are testing, don't continue the search.
-    if(oneAndDone == false) {
-      // Check if anyone has found a block, and then return to mining.
-      setTimeout(() => m.emit(Blockchain.START_MINING), 0);
-    }
-  }
+	m.CurrentBlock.Proof++
 
+	// If we are testing, don't continue the search.
+	if oneAndDone == false {
+		// Check if anyone has found a block, and then return to mining.
+		// setTimeout(() => m.emit(Blockchain.START_MINING), 0);
+	}
+}

@@ -1,12 +1,10 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"math/big"
 
-	"./utils"
+	//"./utils"
+	"github.com/Stan/168proj/cakecoin/utils"
 )
 
 func main() {
@@ -14,6 +12,7 @@ func main() {
 	h := utils.Hash(text)
 	fmt.Printf("%x\n", h)
 
+	/**
 	privKey := utils.GenerateKeypair()
 	addr1 := utils.CalculateAddress(&privKey.PublicKey)
 	fmt.Println(addr1)
@@ -81,4 +80,5 @@ func main() {
 		fmt.Println(err3)
 	}
 	fmt.Println(string(gbString))
+	**/
 }

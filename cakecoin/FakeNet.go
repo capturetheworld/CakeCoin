@@ -23,7 +23,7 @@ func (f *FakeNet) broadcast(msg string, o interface{}) {
 }
 
 func (f *FakeNet) recognizes(client Client) bool {
-	if val, ok := f.Clients[client.Address]; ok {
+	if _, ok := f.Clients[client.Address]; ok {
 		return true
 	} else {
 		return false
@@ -32,6 +32,9 @@ func (f *FakeNet) recognizes(client Client) bool {
 
 func (f *FakeNet) sendMessage(addr string, msg string, o interface{}) {
 	jsonByte, err := json.Marshal(o)
+	if err != nil {
+		panic(err)
+	}
 	test := o
 	f.o2 = json.Unmarshal(jsonByte, test)
 	//needs setTimeout(() => client.emit(msg, o2), 0);
