@@ -89,6 +89,10 @@ func (m Miner) announceProof() {
     m.Net.broadcast(PROOF_FOUND, m.CurrentBlock);
   }
 
+func (m Miner) receiveBlock(s *Block) {
+    m.Net.broadcast(PROOF_FOUND, m.CurrentBlock);
+}
+
 
 //no optional parameters
 func (m Miner) findProof(oneAndDone bool) {
@@ -105,7 +109,7 @@ func (m Miner) findProof(oneAndDone bool) {
 
         // this.log(`found proof for block ${this.currentBlock.chainLength}: ${this.currentBlock.proof}`);
         m.announceProof();
-        m.receiveBlock(this.currentBlock);
+        m.receiveBlock(&m.CurrentBlock);
         m.startNewSearch();
         break;
 	  }
