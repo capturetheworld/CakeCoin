@@ -84,16 +84,25 @@ func (m Miner) startNewSearch() {
 	this.currentBlock.proof = 0
 }
 
+
+func (m Miner) announceProof() {
+    m.Net.broadcast(PROOF_FOUND, m.CurrentBlock);
+  }
+
+
 //no optional parameters
 func (m Miner) findProof(oneAndDone bool) {
 	if(oneAndDone == nil){
 		oneAndDone = false
 	}
 
-	var pausePoint int = m.CurrentBlock.Proof + m.MiningRounds;
-    while (m.CurrentBlock.Proof < pausePoint) {
+	 pausePoint  := m.CurrentBlock.Proof + m.MiningRounds
+
+    for (m.CurrentBlock.Proof < pausePoint) {
       if (m.currentBlock.hasValidProof() == true) {
-		fmt.Printf("found proof for block ${this.currentBlock.chainLength}: ${this.currentBlock.proof}")
+		fmt.Printf("found proof for block %v",m.CurrentBlock.ChainLength)
+		fmt.Printf(": %v\n",m.CurrentBlock.Proof)
+
         // this.log(`found proof for block ${this.currentBlock.chainLength}: ${this.currentBlock.proof}`);
         m.announceProof();
         m.receiveBlock(this.currentBlock);
@@ -102,15 +111,12 @@ func (m Miner) findProof(oneAndDone bool) {
 	  }
 	}
 
-
-	
-
-
 	m.CurrentBlock.Proof++;
 	  
     // If we are testing, don't continue the search.
     if(oneAndDone == false) {
       // Check if anyone has found a block, and then return to mining.
-      setTimeout(() => this.emit(Blockchain.START_MINING), 0);
+      setTimeout(() => m.emit(Blockchain.START_MINING), 0);
     }
   }
+
