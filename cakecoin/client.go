@@ -7,6 +7,7 @@ import (
 	// "./utils"
 	//"./emitter"
 	"github.com/Stan/168proj/cakecoin/utils"
+	"github.com/chuckpreslar/emission"
 )
 
 //Message is
@@ -19,7 +20,7 @@ type Message struct {
 type Client struct {
 	Name, Address                                            string
 	Nonce                                                    int
-	Net                                                      *FakeNet
+	Net                                                      *FakeNet `json:"-"`
 	KeyPair                                                  *rsa.PrivateKey
 	PendingOutgoingTransactions, PendingReceivedTransactions map[string]*Transaction
 	Blocks                                                   map[string]*Block
@@ -81,15 +82,14 @@ func (c *Client) postTransaction(outputs []Output, fee int) *Transaction {
 }
 
 func (c *Client) receiveBlock(b *Block, bstr string) *Block {
+	//fmt.Printf("%s receiving Block\n", c.Name)
 	block := b
 	if b == nil {
 		block = c.BlockChain.deserializeBlock([]byte(bstr))
 	}
-
 	if _, ok := c.Blocks[string(block.id())]; ok {
 		return nil
 	}
-
 	if !block.hasValidProof() && !block.IsGenesisBlock() {
 		fmt.Printf("Block %v does not have a valid proof", string(block.id()))
 		return nil
@@ -130,7 +130,6 @@ func (c *Client) receiveBlock(b *Block, bstr string) *Block {
 	if val, ok := c.PendingBlocks[string(block.id())]; ok {
 		unstuckBlocks = val
 	}
-
 	delete(c.PendingBlocks, string(block.id()))
 
 	for _, uBlock := range unstuckBlocks {
