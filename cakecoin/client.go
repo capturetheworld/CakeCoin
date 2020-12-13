@@ -143,11 +143,39 @@ func (c Client) requestMissingBlock(b Block) {
 	c.Net.broadcast(MISSING_BLOCK, msg)
 }
 
-//func resendPendingTransactions
+func (c Client) resendPendingTransactions() {
+	for _, tx := range c.PendingOutgoingTransactions {
+		//EMIT THE TRANSACTION
+	}
+}
 
-//func provideMissingBlock
+func (c Client) provideMissingBlock(msg Message) {
+	//asking for missing message, just use prevblockhashfornow
+	if val, ok := c.Blocks[string(msg.PrevBlockHash)]; ok {
+		fmt.Printf("Providing missing block %v", string(msg.PrevBlockHash))
+		block := val
+		//EMIT MESSAGE WITH BLOCk
+	}
+}
 
 //func setLastConfirmed
+func (c *Client) setLastConfirmed() {
+	block := c.LastBlock
+	confirmedBlockHeight := block.ChainLength - CONFIRMED_DEPTH
+	if confirmedBlockHeight < 0 {
+		confirmedBlockHeight = 0
+	}
+	for block.ChainLength > confirmedBlockHeight {
+		block = c.Blocks[string(block.PrevBlockHash)]
+	}
+	c.LastConfirmedBlock = block
+
+	for id, tx := range c.PendingOutgoingTransactions {
+		if c.LastConfirmedBlock.contains(tx) {
+			delete(c.PendingOutgoingTransactions, id)
+		}
+	}
+}
 
 func (c Client) showAllBalances(b Block) {
 	fmt.Printf("Showing balances:")

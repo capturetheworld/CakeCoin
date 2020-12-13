@@ -116,7 +116,7 @@ func (b Block) id() []byte {
 	return b.hashVal()
 }
 
-func (b Block) contains(tx Transaction) bool {
+func (b Block) contains(tx *Transaction) bool {
 	_, found := b.Transactions[string(tx.Id())]
 	if found {
 		return true
