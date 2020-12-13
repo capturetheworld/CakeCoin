@@ -36,12 +36,14 @@ func (f *FakeNet) sendMessage(addr string, msg string, o interface{}) {
 	if err != nil {
 		panic(err)
 	}
-	test := o
-	f.o2 = json.Unmarshal(jsonByte, test)
-	//needs setTimeout(() => client.emit(msg, o2), 0);
-	//var CLIENT = (f.Clients[addr])
-	//time.AfterFunc(0, emit(msg, f.o2))
+	o2 := o
+	err = json.Unmarshal(jsonByte, &o2)
+	if err != nil {
+		panic(err)
+	}
 
+	client := f.Clients[addr]
+	client.Emitter.Emit(msg, o2)
 }
 
 func NewFakeNet() *FakeNet {

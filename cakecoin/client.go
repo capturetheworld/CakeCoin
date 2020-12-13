@@ -29,6 +29,7 @@ type Client struct {
 	LastConfirmedBlock                                       *Block
 	ReceiveBlock                                             *Block
 	BlockChain                                               *BlockChain
+	Emitter                                                  *emission.Emitter `json:"-"`
 }
 
 func (c *Client) setGenesisBlock(startingBlock *Block) {
@@ -77,6 +78,7 @@ func (c *Client) postTransaction(outputs []Output, fee int) *Transaction {
 	c.Nonce++
 
 	//BROADCAST WITH EMITTER IDK HOW TO DO THIS
+	c.Net.broadcast(POST_TRANSACTION, tx)
 
 	return tx
 }
@@ -85,6 +87,7 @@ func (c *Client) receiveBlock(b *Block, bstr string) *Block {
 	//fmt.Printf("%s receiving Block\n", c.Name)
 	block := b
 	if b == nil {
+		fmt.Println("Deseralize")
 		block = c.BlockChain.deserializeBlock([]byte(bstr))
 	}
 	if _, ok := c.Blocks[string(block.id())]; ok {
@@ -118,7 +121,7 @@ func (c *Client) receiveBlock(b *Block, bstr string) *Block {
 			return nil
 		}
 	}
-
+	//may be the cycle right here
 	c.Blocks[string(block.id())] = block
 
 	if c.LastBlock.ChainLength < block.ChainLength {
@@ -150,7 +153,7 @@ func (c Client) requestMissingBlock(b Block) {
 func (c Client) resendPendingTransactions() {
 	for _, tx := range c.PendingOutgoingTransactions {
 		//EMIT THE TRANSACTION
-		fmt.Println(tx)
+		c.Net.broadcast(POST_TRANSACTION, tx)
 	}
 }
 
@@ -160,7 +163,7 @@ func (c Client) provideMissingBlock(msg Message) {
 		fmt.Printf("Providing missing block %v", string(msg.PrevBlockHash))
 		block := val
 		//EMIT MESSAGE WITH BLOCk
-		fmt.Println(block)
+		c.Net.sendMessage(msg.Address, PROOF_FOUND, block)
 	}
 }
 
@@ -236,6 +239,12 @@ func NewClient(name string, Net *FakeNet, startingBlock *Block, keyPair *rsa.Pri
 		c.setGenesisBlock(startingBlock)
 	}
 
-	return &c
+	receive := func(b *Block) {
+		c.receiveBlock(b, "")
+	}
 
+	c.Emitter = emission.NewEmitter()
+	c.Emitter.On(PROOF_FOUND, receive)
+	c.Emitter.On(MISSING_BLOCK, c.provideMissingBlock)
+	return &c
 }
