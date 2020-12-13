@@ -9,14 +9,16 @@ type FakeNet struct {
 	o2      interface{}
 }
 
-func (f *FakeNet) register(clientList ...Client) {
+func (f *FakeNet) register(clientList ...*Client) {
 	for _, client := range clientList {
-		f.Clients[client.Address] = &client
+		f.Clients[client.Address] = client
 	}
 }
 
 func (f *FakeNet) broadcast(msg string, o interface{}) {
 	for address, _ := range f.Clients {
+		//fmt.Println(address)
+		//fmt.Println(f.Clients[address])
 		f.sendMessage(address, msg, o)
 	}
 }

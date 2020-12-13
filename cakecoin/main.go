@@ -1,18 +1,21 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 
-	"github.com/chuckpreslar/emission"
+	"github.com/Stan/168proj/cakecoin/utils"
 )
 
 func main() {
-	/**
+
 	fakeNet := NewFakeNet()
 	Alice := NewClient("Alice", fakeNet, nil, nil)
+	Bob := NewClient("Bob", fakeNet, nil, nil)
 	bc := BlockChain{}
 	clientBalanceMap := make(map[*Client]int)
 	clientBalanceMap[Alice] = 200
+	clientBalanceMap[Bob] = 100
 	g := bc.MakeGenesis(5, 25, 5, 6, clientBalanceMap, nil)
 	fmt.Println(g.Serialize())
 	fmt.Println(Alice.confirmedBalance())
@@ -22,6 +25,8 @@ func main() {
 	fmt.Println(Alice.availableGold())
 	alStr, _ := json.Marshal(Alice)
 	fmt.Println(string(alStr))
+	bobStr, _ := json.Marshal(Bob)
+	fmt.Println(string(bobStr))
 
 	privKey := utils.GenerateKeypair()
 	addr1 := utils.CalculateAddress(&privKey.PublicKey)
@@ -31,27 +36,27 @@ func main() {
 	}
 	fmt.Println(string(g.id()))
 	fmt.Println(string(newBlock.Serialize()))
-	Alice.receiveBlock(newBlock, "")
-	aStr, _ := json.Marshal(Alice)
+
+	fakeNet.register(Alice, Bob)
+	fakeNet.broadcast(PROOF_FOUND, newBlock)
+
+	aStr, err := json.Marshal(Alice)
+	if err != nil {
+		fmt.Println(err)
+	}
 	fmt.Println(string(aStr))
 	fmt.Println("done")
-	**/
-	emitter := emission.NewEmitter()
-	hello := func(to string) {
-		fmt.Printf("Hello %s!\n", to)
-	}
 
-	count := func(count int) {
-		for i := 0; i < count; i++ {
-			fmt.Println(i)
-		}
-	}
-
-	emitter.On("hello", hello).
-		On("count", count).
-		Emit("hello", "world").
-		Emit("count", 5)
 	/**
+	emitter := emission.NewEmitter()
+	hello := func(b *Block) {
+		fmt.Println(b.Serialize())
+	}
+
+	emitter.On(PROOF_FOUND, hello).
+		Emit(PROOF_FOUND, newBlock)
+
+
 	text := "I am lending you $100 for 10 years"
 	h := utils.Hash(text)
 	fmt.Printf("%x\n", h)
