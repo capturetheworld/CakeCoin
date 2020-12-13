@@ -4,7 +4,7 @@ import (
 	"crypto/rsa"
 	"fmt"
 
-	//"./utils"
+	// "./utils"
 	//"./emitter"
 	"github.com/Stan/168proj/cakecoin/utils"
 )
@@ -55,6 +55,10 @@ func (c Client) availableGold() int {
 }
 
 func (c *Client) postTransaction(outputs []Output, fee int) *Transaction {
+
+	if fee < 0 {
+		fee = c.BlockChain.DefaultTxFee
+	}
 	total := fee
 	for _, output := range outputs {
 		total += output.Amount
