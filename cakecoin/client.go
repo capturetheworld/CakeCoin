@@ -19,7 +19,7 @@ type Message struct {
 type Client struct {
 	Name, Address                                            string
 	Nonce                                                    int
-	Net                                                      FakeNet
+	Net                                                      *FakeNet
 	KeyPair                                                  *rsa.PrivateKey
 	PendingOutgoingTransactions, PendingReceivedTransactions map[string]*Transaction
 	Blocks                                                   map[string]*Block
@@ -30,7 +30,7 @@ type Client struct {
 	BlockChain                                               *BlockChain
 }
 
-func (c Client) setGenesisBlock(startingBlock *Block) {
+func (c *Client) setGenesisBlock(startingBlock *Block) {
 	if c.LastBlock != nil {
 		fmt.Printf("Cannot set starting block for existing blockchain.")
 	}
@@ -46,7 +46,7 @@ func (c Client) confirmedBalance() int {
 
 func (c Client) availableGold() int {
 	var pendingSpent int = 0
-	for id, tx := range c.PendingOutgoingTransactions {
+	for _, tx := range c.PendingOutgoingTransactions {
 		pendingSpent = pendingSpent + tx.TotalOutput()
 	}
 
@@ -76,13 +76,13 @@ func (c *Client) postTransaction(outputs []Output, fee int) *Transaction {
 	return tx
 }
 
-func (c *Client) receiveBlock(b *Block, bstr string) *Block { //needs finishing, figure out how to return null
+func (c *Client) receiveBlock(b *Block, bstr string) *Block {
 	block := b
 	if b == nil {
 		block = c.BlockChain.deserializeBlock([]byte(bstr))
 	}
 
-	if val, ok := c.Blocks[string(block.id())]; ok {
+	if _, ok := c.Blocks[string(block.id())]; ok {
 		return nil
 	}
 
@@ -92,9 +92,10 @@ func (c *Client) receiveBlock(b *Block, bstr string) *Block { //needs finishing,
 	}
 
 	//make sure that the if statement after this actually sets it
-	var prevBlock *Block
+	var prevBlock *Block = nil
 
-	if prevBlock, ok := c.Blocks[string(block.PrevBlockHash)]; !ok {
+	prevBlock, ok := c.Blocks[string(block.PrevBlockHash)]
+	if !ok {
 		if !prevBlock.IsGenesisBlock() {
 			stuckBlocks, ok := c.PendingBlocks[string(block.PrevBlockHash)]
 			if !ok {
@@ -146,6 +147,7 @@ func (c Client) requestMissingBlock(b Block) {
 func (c Client) resendPendingTransactions() {
 	for _, tx := range c.PendingOutgoingTransactions {
 		//EMIT THE TRANSACTION
+		fmt.Println(tx)
 	}
 }
 
@@ -155,6 +157,7 @@ func (c Client) provideMissingBlock(msg Message) {
 		fmt.Printf("Providing missing block %v", string(msg.PrevBlockHash))
 		block := val
 		//EMIT MESSAGE WITH BLOCk
+		fmt.Println(block)
 	}
 }
 
@@ -188,13 +191,12 @@ func (c Client) showAllBalances(b Block) {
 }
 
 func (c Client) log(msg Message) {
+	name := c.Address[0:10]
 	if len(c.Name) > 0 {
-		name := c.Name
-	} else {
-		name := c.Address[0:10]
+		name = c.Name
 	}
 
-	fmt.Printf("    %v", c.Name)
+	fmt.Printf("    %v", name)
 	fmt.Printf("    %v", msg)
 
 }
@@ -208,7 +210,7 @@ func (c Client) showBlockchain() {
 	}
 }
 
-func NewClient(name string, Net FakeNet, startingBlock *Block, keyPair *rsa.PrivateKey) *Client {
+func NewClient(name string, Net *FakeNet, startingBlock *Block, keyPair *rsa.PrivateKey) *Client {
 	var c Client
 	c.Net = Net
 	c.Name = name

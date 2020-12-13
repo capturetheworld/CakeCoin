@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"time"
 )
 
 type FakeNet struct {
@@ -38,8 +37,8 @@ func (f *FakeNet) sendMessage(addr string, msg string, o interface{}) {
 	test := o
 	f.o2 = json.Unmarshal(jsonByte, test)
 	//needs setTimeout(() => client.emit(msg, o2), 0);
-	var CLIENT = (f.Clients[addr])
-	time.AfterFunc(0, emit(msg, f.o2))
+	//var CLIENT = (f.Clients[addr])
+	//time.AfterFunc(0, emit(msg, f.o2))
 
 }
 

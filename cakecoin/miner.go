@@ -1,5 +1,6 @@
 package main
 
+/**
 import (
 	"crypto/rsa"
 	"fmt"
@@ -64,9 +65,6 @@ func (m Miner) setGenesisBlock(startingBlock *Block) {
 	m.Blocks[string(startingBlock.id())] = startingBlock
 }
 
-/**
- * Starts listeners and begins mining.
- */
 func (m Miner) initialize() {
 	m.startNewSearch()
 
@@ -122,3 +120,4 @@ func (m Miner) findProof(oneAndDone bool) {
 		// setTimeout(() => m.emit(Blockchain.START_MINING), 0);
 	}
 }
+**/

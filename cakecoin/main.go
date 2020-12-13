@@ -3,16 +3,59 @@ package main
 import (
 	"fmt"
 
-	//"./utils"
-	"github.com/Stan/168proj/cakecoin/utils"
+	"github.com/chuckpreslar/emission"
 )
 
 func main() {
+	/**
+	fakeNet := NewFakeNet()
+	Alice := NewClient("Alice", fakeNet, nil, nil)
+	bc := BlockChain{}
+	clientBalanceMap := make(map[*Client]int)
+	clientBalanceMap[Alice] = 200
+	g := bc.MakeGenesis(5, 25, 5, 6, clientBalanceMap, nil)
+	fmt.Println(g.Serialize())
+	fmt.Println(Alice.confirmedBalance())
+	fmt.Println(Alice.availableGold())
+	outputs := []Output{Output{3.0, "randomstring"}, Output{4.0, "randomstring2"}}
+	Alice.postTransaction(outputs, 5)
+	fmt.Println(Alice.availableGold())
+	alStr, _ := json.Marshal(Alice)
+	fmt.Println(string(alStr))
+
+	privKey := utils.GenerateKeypair()
+	addr1 := utils.CalculateAddress(&privKey.PublicKey)
+	newBlock := bc.MakeBlock(addr1, g, nil, nil)
+	for !newBlock.hasValidProof() {
+		newBlock.Proof++
+	}
+	fmt.Println(string(g.id()))
+	fmt.Println(string(newBlock.Serialize()))
+	Alice.receiveBlock(newBlock, "")
+	aStr, _ := json.Marshal(Alice)
+	fmt.Println(string(aStr))
+	fmt.Println("done")
+	**/
+	emitter := emission.NewEmitter()
+	hello := func(to string) {
+		fmt.Printf("Hello %s!\n", to)
+	}
+
+	count := func(count int) {
+		for i := 0; i < count; i++ {
+			fmt.Println(i)
+		}
+	}
+
+	emitter.On("hello", hello).
+		On("count", count).
+		Emit("hello", "world").
+		Emit("count", 5)
+	/**
 	text := "I am lending you $100 for 10 years"
 	h := utils.Hash(text)
 	fmt.Printf("%x\n", h)
 
-	/**
 	privKey := utils.GenerateKeypair()
 	addr1 := utils.CalculateAddress(&privKey.PublicKey)
 	fmt.Println(addr1)
