@@ -100,7 +100,7 @@ func (c *Client) receiveBlock(b *Block, bstr string) *Block {
 
 	prevBlock, ok := c.Blocks[string(block.PrevBlockHash)]
 	if !ok {
-		if !prevBlock.IsGenesisBlock() {
+		if prevBlock == nil || !prevBlock.IsGenesisBlock() {
 			stuckBlocks, ok := c.PendingBlocks[string(block.PrevBlockHash)]
 			if !ok {
 				c.requestMissingBlock(*block)

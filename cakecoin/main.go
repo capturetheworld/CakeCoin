@@ -13,6 +13,7 @@ func main() {
 	Bob := NewClient("Bob", fakeNet, nil, nil)
 	Mickey := newMiner("Mickey", fakeNet, nil, nil)
 	Minnie := newMiner("Minnie", fakeNet, nil, nil)
+	Donald := newMiner("Donald", fakeNet, nil, nil)
 
 	fakeNet.register(Alice, Bob, Mickey.MinerClient, Minnie.MinerClient)
 
@@ -33,6 +34,7 @@ func main() {
 		fmt.Printf("Bob has %v gold.\n", c.LastBlock.balanceOf(Bob.Address))
 		fmt.Printf("Minnie has %v gold.\n", c.LastBlock.balanceOf(Minnie.MinerClient.Address))
 		fmt.Printf("Mickey has %v gold.\n", c.LastBlock.balanceOf(Mickey.MinerClient.Address))
+		fmt.Printf("Donald has %v gold.\n", c.LastBlock.balanceOf(Donald.MinerClient.Address))
 		fmt.Println()
 	}
 
@@ -44,23 +46,36 @@ func main() {
 		fmt.Printf("Minnie has a chain of length %v\n", Minnie.CurrentBlock.ChainLength)
 
 		fmt.Printf("")
+		fmt.Printf("Donald has a chain of length %v\n", Donald.CurrentBlock.ChainLength)
+
+		fmt.Printf("")
 		fmt.Printf("Final balances (Minnie's perspective):\n")
 		showBalances(Minnie.MinerClient)
 		fmt.Printf("")
 		fmt.Printf("Final balances (Alice's perspective):\n")
 		showBalances(Alice)
+		fmt.Printf("Final balances (Donald's perspective):\n")
+		showBalances(Donald.MinerClient)
 		os.Exit(0)
 	}
-	DurationOfTime := time.Duration(10) * time.Second
+	DurationOfTime := time.Duration(20) * time.Second
 	time.AfterFunc(DurationOfTime, timeout1)
+	timeout2 := func() {
+		fakeNet.register(Donald.MinerClient)
+		go Donald.initialize()
+	}
+	time.AfterFunc(time.Duration(10)*time.Second, timeout2)
 
 	fmt.Printf("Initial balances:\n")
 	showBalances(Alice)
+
+	Donald.setGenesisBlock(g)
+	Donald.MinerClient.BlockChain = &bc
 
 	go Mickey.initialize()
 	go Minnie.initialize()
 
 	go Alice.postTransaction(outputs, 5)
 
-	time.Sleep(20 * time.Second)
+	time.Sleep(40 * time.Second)
 }

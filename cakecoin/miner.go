@@ -116,7 +116,7 @@ func (m *Miner) syncTransactions(nb *Block) map[*Transaction]int {
 		}
 	}
 
-	for cb != nil && string(cb.id()) != string(nb.id()) {
+	for cb != nil && nb != nil && string(cb.id()) != string(nb.id()) {
 		for _, tx := range cb.Transactions {
 			cbTxs[tx] = 0
 		}
