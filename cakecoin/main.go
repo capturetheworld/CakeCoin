@@ -12,8 +12,9 @@ func main() {
 	Alice := NewClient("Alice", fakeNet, nil, nil)
 	Bob := NewClient("Bob", fakeNet, nil, nil)
 	Mickey := newMiner("Mickey", fakeNet, nil, nil)
+	Minnie := newMiner("Minnie", fakeNet, nil, nil)
 
-	fakeNet.register(Alice, Bob, Mickey.MinerClient)
+	fakeNet.register(Alice, Bob, Mickey.MinerClient, Minnie.MinerClient)
 
 	bc := BlockChain{}
 
@@ -21,21 +22,45 @@ func main() {
 	clientBalanceMap[Alice] = 200
 	clientBalanceMap[Bob] = 100
 	clientBalanceMap[Mickey.MinerClient] = 50
+	clientBalanceMap[Minnie.MinerClient] = 50
 
-	g := bc.MakeGenesis(15, 25, 5, 6, clientBalanceMap, nil)
+	g := bc.MakeGenesis(18, 25, 5, 6, clientBalanceMap, nil)
 	fmt.Println(g.Serialize())
-	fmt.Println(Alice.confirmedBalance())
-	fmt.Println(Alice.availableGold())
-
 	outputs := []Output{Output{3.0, Bob.Address}, Output{4.0, Mickey.MinerClient.Address}}
 
-	Mickey.initialize()
+	showBalances := func(c *Client) {
+		fmt.Printf("Alice has %v gold.\n", c.LastBlock.balanceOf(Alice.Address))
+		fmt.Printf("Bob has %v gold.\n", c.LastBlock.balanceOf(Bob.Address))
+		fmt.Printf("Minnie has %v gold.\n", c.LastBlock.balanceOf(Minnie.MinerClient.Address))
+		fmt.Printf("Mickey has %v gold.\n", c.LastBlock.balanceOf(Mickey.MinerClient.Address))
+		fmt.Println()
+	}
 
-	Alice.postTransaction(outputs, 5)
+	timeout1 := func() {
+		fmt.Printf("")
+		fmt.Printf("Mickey has a chain of length %v\n", Mickey.CurrentBlock.ChainLength)
 
-	time.AfterFunc(5*time.Second, timeout1)
-}
+		fmt.Printf("")
+		fmt.Printf("Minnie has a chain of length %v\n", Minnie.CurrentBlock.ChainLength)
 
-func timeout1() {
-	os.Exit(0)
+		fmt.Printf("")
+		fmt.Printf("Final balances (Minnie's perspective):\n")
+		showBalances(Minnie.MinerClient)
+		fmt.Printf("")
+		fmt.Printf("Final balances (Alice's perspective):\n")
+		showBalances(Alice)
+		os.Exit(0)
+	}
+	DurationOfTime := time.Duration(10) * time.Second
+	time.AfterFunc(DurationOfTime, timeout1)
+
+	fmt.Printf("Initial balances:\n")
+	showBalances(Alice)
+
+	go Mickey.initialize()
+	go Minnie.initialize()
+
+	go Alice.postTransaction(outputs, 5)
+
+	time.Sleep(20 * time.Second)
 }

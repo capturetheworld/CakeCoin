@@ -3,9 +3,12 @@ package main
 import (
 	"crypto/rsa"
 	"fmt"
+	"sync"
 	//"./utils"
 	//"./emitter"
 )
+
+var lock sync.Mutex
 
 //Miner is a client but since there is no subclasses
 type Miner struct {
@@ -28,12 +31,18 @@ func (m *Miner) setGenesisBlock(startingBlock *Block) {
 }
 
 func (m *Miner) initialize() {
+	fmt.Printf("%s is initializing\n", m.MinerClient.Name)
 	m.startNewSearch(nil)
 
 	addTx := func(trans *Transaction) {
 		m.addTransaction(trans, "")
 	}
 
+	receive := func(b *Block) {
+		m.receiveBlock(b, "")
+	}
+	m.MinerClient.Emitter.Off(PROOF_FOUND, m.MinerClient.receive)
+	m.MinerClient.Emitter.On(PROOF_FOUND, receive)
 	m.MinerClient.Emitter.On(START_MINING, m.findProof)
 	m.MinerClient.Emitter.On(POST_TRANSACTION, addTx)
 
@@ -41,7 +50,7 @@ func (m *Miner) initialize() {
 }
 
 func (m *Miner) startNewSearch(txSet map[*Transaction]int) {
-	fmt.Println("Starting new search")
+	//fmt.Println("Starting new search")
 	m.CurrentBlock = m.MinerClient.BlockChain.MakeBlock(m.MinerClient.Address, m.MinerClient.LastBlock, nil, nil)
 
 	transSet := make(map[*Transaction]int)
@@ -59,14 +68,13 @@ func (m *Miner) startNewSearch(txSet map[*Transaction]int) {
 //no optional parameters
 func (m *Miner) findProof() {
 	pausePoint := m.CurrentBlock.Proof + m.MiningRounds
-
+	//fmt.Printf("%s is finding proof", m.MinerClient.Name)
 	for m.CurrentBlock.Proof < pausePoint {
 		if m.CurrentBlock.hasValidProof() {
-			fmt.Printf("found proof for block %v", m.CurrentBlock.ChainLength)
+			fmt.Printf("%s found proof for block %v", m.MinerClient.Name, m.CurrentBlock.ChainLength)
 			fmt.Printf(": %v\n", m.CurrentBlock.Proof)
-
 			// this.log(`found proof for block ${this.currentBlock.chainLength}: ${this.currentBlock.proof}`);
-			m.announceProof()
+			go m.announceProof()
 			m.receiveBlock(m.CurrentBlock, "")
 			m.startNewSearch(nil)
 			break
@@ -83,11 +91,12 @@ func (m *Miner) announceProof() {
 }
 
 func (m *Miner) receiveBlock(b *Block, blockStr string) {
+	//fmt.Printf("%s is receiving block\n", m.MinerClient.Name)
 	block := m.MinerClient.receiveBlock(b, blockStr)
 	if block == nil {
 		return
 	}
-
+	//fmt.Printf("%s is receiving block2\n", m.MinerClient.Name)
 	if m.CurrentBlock != nil && block.ChainLength >= m.CurrentBlock.ChainLength {
 		fmt.Println("cutting over to new chain")
 		txSet := m.syncTransactions(block)

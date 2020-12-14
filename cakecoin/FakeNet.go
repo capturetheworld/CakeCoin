@@ -1,9 +1,5 @@
 package main
 
-import (
-	"encoding/json"
-)
-
 type FakeNet struct {
 	Clients map[string]*Client
 	o2      interface{}
@@ -32,6 +28,7 @@ func (f *FakeNet) recognizes(client Client) bool {
 }
 
 func (f *FakeNet) sendMessage(addr string, msg string, o interface{}) {
+	/**
 	jsonByte, err := json.Marshal(o)
 	if err != nil {
 		panic(err)
@@ -41,9 +38,10 @@ func (f *FakeNet) sendMessage(addr string, msg string, o interface{}) {
 	if err != nil {
 		panic(err)
 	}
-
+	**/
 	client := f.Clients[addr]
-	client.Emitter.Emit(msg, o2)
+	//fmt.Printf("Sending %s to %s\n", msg, client.Name)
+	client.Emitter.Emit(msg, o)
 }
 
 func NewFakeNet() *FakeNet {

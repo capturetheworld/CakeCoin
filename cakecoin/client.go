@@ -68,20 +68,21 @@ func (c *Client) postTransaction(outputs []Output, fee int) *Transaction {
 	tx := NewTransaction(c.Address, c.Nonce, &c.KeyPair.PublicKey, nil, fee, outputs)
 
 	tx.Sign(c.KeyPair)
+	fmt.Printf("Alice signs and it has a %v sig\n", tx.ValidSignature())
 
 	c.PendingOutgoingTransactions[string(tx.Id())] = tx
 
 	c.Nonce++
 
-	//BROADCAST WITH EMITTER IDK HOW TO DO THIS
 	c.Net.broadcast(POST_TRANSACTION, tx)
 
 	return tx
 }
 
 func (c *Client) receiveBlock(b *Block, bstr string) *Block {
-	fmt.Printf("%s receiving Block\n", c.Name)
+	//fmt.Printf("%s receiving Block\n", c.Name)
 	block := b
+
 	if b == nil {
 		fmt.Println("Deseralize")
 		block = c.BlockChain.deserializeBlock([]byte(bstr))
@@ -90,7 +91,7 @@ func (c *Client) receiveBlock(b *Block, bstr string) *Block {
 		return nil
 	}
 	if !block.hasValidProof() && !block.IsGenesisBlock() {
-		fmt.Printf("Block %v does not have a valid proof", string(block.id()))
+		fmt.Printf("Block %v does not have a valid proof\n", string(block.id()))
 		return nil
 	}
 
@@ -212,6 +213,10 @@ func (c Client) showBlockchain() {
 	}
 }
 
+func (c *Client) receive(b *Block) {
+	c.receiveBlock(b, "")
+}
+
 func NewClient(name string, Net *FakeNet, startingBlock *Block, keyPair *rsa.PrivateKey) *Client {
 	var c Client
 	c.Net = Net
@@ -235,12 +240,8 @@ func NewClient(name string, Net *FakeNet, startingBlock *Block, keyPair *rsa.Pri
 		c.setGenesisBlock(startingBlock)
 	}
 
-	receive := func(b *Block) {
-		c.receiveBlock(b, "")
-	}
-
 	c.Emitter = emission.NewEmitter()
-	c.Emitter.On(PROOF_FOUND, receive)
+	c.Emitter.On(PROOF_FOUND, c.receive)
 	c.Emitter.On(MISSING_BLOCK, c.provideMissingBlock)
 	return &c
 }

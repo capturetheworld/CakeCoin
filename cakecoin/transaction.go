@@ -2,8 +2,9 @@ package main
 
 import (
 	"crypto/rsa"
-	b64 "encoding/base64"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 
 	//"./utils"
 	"github.com/Stan/168proj/cakecoin/utils"
@@ -18,18 +19,36 @@ type Transaction struct {
 	From    string
 	Nonce   int
 	PubKey  *rsa.PublicKey
-	Sig     []byte `json:"-"`
+	Sig     []byte
 	Fee     int
 	Outputs []Output
 	//data idk what to do for this for now
 }
 
 func (t Transaction) Id() []byte {
-	transStr, err := json.Marshal(t)
+	transStr := t.toJson()
+
+	return []byte(hex.EncodeToString(utils.Hash("TX" + string(transStr))))
+}
+
+func (t Transaction) toJson() []byte {
+	var tmp struct {
+		From    string
+		Nonce   int
+		PubKey  *rsa.PublicKey
+		Fee     int
+		Outputs []Output
+	}
+	tmp.From = t.From
+	tmp.Nonce = t.Nonce
+	tmp.PubKey = t.PubKey
+	tmp.Fee = t.Fee
+	tmp.Outputs = t.Outputs
+	val, err := json.Marshal(&tmp)
 	if err != nil {
 		panic(err)
 	}
-	return []byte(b64.StdEncoding.EncodeToString(utils.Hash("TX" + string(transStr))))
+	return val
 }
 
 func (t *Transaction) Sign(privKey *rsa.PrivateKey) {
@@ -37,7 +56,17 @@ func (t *Transaction) Sign(privKey *rsa.PrivateKey) {
 }
 
 func (t Transaction) ValidSignature() bool {
-	return t.Sig != nil && utils.AddressMatchesKey(t.From, t.PubKey) && utils.VerifySignature(t.PubKey, string(t.Id()), t.Sig)
+	if t.Sig != nil {
+		if !utils.AddressMatchesKey(t.From, t.PubKey) {
+			fmt.Println("doesn't match key")
+			return false
+		} else if !utils.VerifySignature(t.PubKey, string(t.Id()), t.Sig) {
+			fmt.Println("invalid sig")
+			return false
+		}
+	}
+	return true
+	//return t.Sig != nil && utils.AddressMatchesKey(t.From, t.PubKey) && utils.VerifySignature(t.PubKey, string(t.Id()), t.Sig)
 }
 
 func (t Transaction) SufficientFunds(b Block) bool {
