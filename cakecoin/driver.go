@@ -1,6 +1,5 @@
 package main
 
-/**
 import (
 	"fmt"
 	"os"
@@ -75,4 +74,3 @@ func timeout2() {
 
 	os.Exit(0)
 }
-**/
