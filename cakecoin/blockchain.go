@@ -87,6 +87,7 @@ func (bc *BlockChain) MakeGenesis(powLeadingZeroes int, coinbaseAmount int, defa
 	if clientBalanceMap != nil {
 		for client, _ := range clientBalanceMap {
 			client.setGenesisBlock(g)
+			client.BlockChain = bc
 		}
 	}
 

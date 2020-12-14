@@ -80,7 +80,7 @@ func (c *Client) postTransaction(outputs []Output, fee int) *Transaction {
 }
 
 func (c *Client) receiveBlock(b *Block, bstr string) *Block {
-	//fmt.Printf("%s receiving Block\n", c.Name)
+	fmt.Printf("%s receiving Block\n", c.Name)
 	block := b
 	if b == nil {
 		fmt.Println("Deseralize")
